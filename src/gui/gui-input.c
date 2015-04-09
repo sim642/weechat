@@ -739,7 +739,7 @@ gui_input_search_stay (struct t_gui_buffer *buffer)
 }
 
 /*
- * Stops text search (default key: escape during search).
+ * Stops text search (default key: ctrl-Q during search).
  */
 
 void
