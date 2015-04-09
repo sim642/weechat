@@ -2945,6 +2945,8 @@ COMMAND_CALLBACK(input)
         gui_input_search_switch_regex (buffer);
     else if (string_strcasecmp (argv[1], "search_switch_where") == 0)
         gui_input_search_switch_where (buffer);
+    else if (string_strcasecmp (argv[1], "search_stay") == 0)
+        gui_input_search_stay (buffer);
     else if (string_strcasecmp (argv[1], "search_stop") == 0)
         gui_input_search_stop (buffer);
     else if (string_strcasecmp (argv[1], "delete_previous_char") == 0)
@@ -7344,6 +7346,7 @@ command_init ()
            "  search_switch_where: switch search in messages/prefixes\n"
            "  search_previous: search previous line\n"
            "  search_next: search next line\n"
+           "  search_stay: stop search at current position\n"
            "  search_stop: stop search\n"
            "  delete_previous_char: delete previous char\n"
            "  delete_next_char: delete next char\n"
@@ -7393,7 +7396,7 @@ command_init ()
            "\n"
            "This command is used by key bindings or plugins."),
         "return|complete_next|complete_previous|search_text|search_switch_case|"
-        "search_previous|search_next|search_stop|delete_previous_char|"
+        "search_previous|search_next|search_stay|search_stop|delete_previous_char|"
         "delete_next_char|delete_previous_word|delete_next_word|"
         "delete_beginning_of_line|delete_end_of_line|delete_line|"
         "clipboard_paste|transpose_chars|undo|redo|move_beginning_of_line|"

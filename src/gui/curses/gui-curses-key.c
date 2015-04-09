@@ -228,8 +228,9 @@ gui_key_default_bindings (int context)
     }
     else if (context == GUI_KEY_CONTEXT_SEARCH)
     {
-        BIND(/* <enter> */ "ctrl-M",  "/input search_stop");
-        BIND(/* <enter> */ "ctrl-J",  "/input search_stop");
+        BIND(/* <enter> */ "ctrl-M",  "/input search_stay");
+        BIND(/* <enter> */ "ctrl-J",  "/input search_stay");
+        BIND(/* ^Q      */ "ctrl-Q",  "/input search_stop");
         BIND(/* m-c     */ "meta-c",  "/input search_switch_case");
         BIND(/* ^R      */ "ctrl-R",  "/input search_switch_regex");
         BIND(/* <tab>   */ "ctrl-I",  "/input search_switch_where");

@@ -1646,6 +1646,36 @@ gui_window_search_restart (struct t_gui_window *window)
 }
 
 /*
+ * Stops search in a buffer at current position.
+ */
+
+void
+gui_window_search_stay (struct t_gui_window *window)
+{
+    window->buffer->text_search = GUI_TEXT_SEARCH_DISABLED;
+    window->buffer->text_search = 0;
+    if (window->buffer->text_search_regex_compiled)
+    {
+        regfree (window->buffer->text_search_regex_compiled);
+        free (window->buffer->text_search_regex_compiled);
+        window->buffer->text_search_regex_compiled = NULL;
+    }
+    gui_input_delete_line (window->buffer);
+    if (window->buffer->text_search_input)
+    {
+        gui_input_insert_string (window->buffer,
+                                 window->buffer->text_search_input, -1);
+        gui_input_text_changed_modifier_and_signal (window->buffer,
+                                                    0, /* save undo */
+                                                    1); /* stop completion */
+        free (window->buffer->text_search_input);
+        window->buffer->text_search_input = NULL;
+    }
+
+    gui_buffer_ask_chat_refresh (window->buffer, 2);
+}
+
+/*
  * Stops search in a buffer.
  */
 

@@ -722,7 +722,24 @@ gui_input_search_next (struct t_gui_buffer *buffer)
 }
 
 /*
- * Stops text search (default key: return during search).
+ * Stops text search at current position (default key: return during search).
+ */
+
+void
+gui_input_search_stay (struct t_gui_buffer *buffer)
+{
+    struct t_gui_window *window;
+
+    window = gui_window_search_with_buffer (buffer);
+    if (window && (window->buffer->text_search != GUI_TEXT_SEARCH_DISABLED))
+    {
+        gui_window_search_stay (window);
+        gui_input_search_signal (buffer);
+    }
+}
+
+/*
+ * Stops text search (default key: escape during search).
  */
 
 void

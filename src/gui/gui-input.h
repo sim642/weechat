@@ -50,6 +50,7 @@ extern void gui_input_search_switch_regex (struct t_gui_buffer *buffer);
 extern void gui_input_search_switch_where (struct t_gui_buffer *buffer);
 extern void gui_input_search_previous (struct t_gui_buffer *buffer);
 extern void gui_input_search_next (struct t_gui_buffer *buffer);
+extern void gui_input_search_stay (struct t_gui_buffer *buffer);
 extern void gui_input_search_stop (struct t_gui_buffer *buffer);
 extern void gui_input_delete_previous_char (struct t_gui_buffer *buffer);
 extern void gui_input_delete_next_char (struct t_gui_buffer *buffer);

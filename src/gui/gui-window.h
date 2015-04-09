@@ -183,6 +183,7 @@ extern void gui_window_scroll_next_highlight (struct t_gui_window *window);
 extern void gui_window_scroll_unread (struct t_gui_window *window);
 extern void gui_window_search_start (struct t_gui_window *window);
 extern void gui_window_search_restart (struct t_gui_window *window);
+extern void gui_window_search_stay (struct t_gui_window *window);
 extern void gui_window_search_stop (struct t_gui_window *window);
 extern int gui_window_search_text (struct t_gui_window *window);
 extern void gui_window_zoom (struct t_gui_window *window);
