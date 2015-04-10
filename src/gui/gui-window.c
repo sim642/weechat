@@ -1646,11 +1646,11 @@ gui_window_search_restart (struct t_gui_window *window)
 }
 
 /*
- * Stops search in a buffer at current position.
+ * Exits search mode in a buffer (helper function for stay and stop).
  */
 
 void
-gui_window_search_stay (struct t_gui_window *window)
+gui_window_search_exit (struct t_gui_window *window)
 {
     window->buffer->text_search = GUI_TEXT_SEARCH_DISABLED;
     window->buffer->text_search = 0;
@@ -1671,7 +1671,16 @@ gui_window_search_stay (struct t_gui_window *window)
         free (window->buffer->text_search_input);
         window->buffer->text_search_input = NULL;
     }
+}
 
+/*
+ * Stops search in a buffer at current position.
+ */
+
+void
+gui_window_search_stay (struct t_gui_window *window)
+{
+    gui_window_search_exit (window);
     gui_buffer_ask_chat_refresh (window->buffer, 2);
 }
 
@@ -1682,25 +1691,7 @@ gui_window_search_stay (struct t_gui_window *window)
 void
 gui_window_search_stop (struct t_gui_window *window)
 {
-    window->buffer->text_search = GUI_TEXT_SEARCH_DISABLED;
-    window->buffer->text_search = 0;
-    if (window->buffer->text_search_regex_compiled)
-    {
-        regfree (window->buffer->text_search_regex_compiled);
-        free (window->buffer->text_search_regex_compiled);
-        window->buffer->text_search_regex_compiled = NULL;
-    }
-    gui_input_delete_line (window->buffer);
-    if (window->buffer->text_search_input)
-    {
-        gui_input_insert_string (window->buffer,
-                                 window->buffer->text_search_input, -1);
-        gui_input_text_changed_modifier_and_signal (window->buffer,
-                                                    0, /* save undo */
-                                                    1); /* stop completion */
-        free (window->buffer->text_search_input);
-        window->buffer->text_search_input = NULL;
-    }
+    gui_window_search_exit (window);
     window->scroll->start_line = NULL;
     window->scroll->start_line_pos = 0;
     gui_hotlist_remove_buffer (window->buffer, 0);
