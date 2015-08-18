@@ -38,6 +38,7 @@
 #include "irc-protocol.h"
 #include "irc-server.h"
 
+extern time_t weechat_first_start_time; /* for ${uptime} in CTCP replies */
 
 struct t_irc_ctcp_reply irc_ctcp_default_reply[] =
 { { "clientinfo", "${clientinfo}" },
@@ -332,6 +333,9 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
     struct tm *local_time;
     char buf[1024];
     struct utsname *buf_uname;
+    time_t running_time;
+    int day, hour, min, sec;
+
 
     struct t_hashtable *pointers = weechat_hashtable_new (8,
                                                           WEECHAT_HASHTABLE_STRING,
@@ -436,6 +440,12 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
     weechat_hashtable_set (extra_vars, "time", buf);
 
     /*
+     * ${nick}: nick name, example:
+     *   name
+     */
+    weechat_hashtable_set (extra_vars, "nick", server->nick);
+
+    /*
      * ${username}: user name, example:
      *   name
      */
@@ -460,6 +470,24 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
         weechat_hashtable_set (extra_vars, "realname", realname);
         free (realname);
     }
+
+    /*
+     * ${uptime}: WeeChat uptime, example:
+     *   3 days 15:16:40
+     */
+    running_time = now - weechat_first_start_time;
+    day = running_time / (60 * 60 * 24);
+    hour = (running_time % (60 * 60 * 24)) / (60 * 60);
+    min = ((running_time % (60 * 60 * 24)) % (60 * 60)) / 60;
+    sec = ((running_time % (60 * 60 * 24)) % (60 * 60)) % 60;
+    snprintf (buf, sizeof (buf),
+              "%d %s %02d:%02d:%02d",
+              day,
+              (day != 1) ? "days" : "day",
+              hour,
+              min,
+              sec);
+    weechat_hashtable_set (extra_vars, "uptime", buf);
 
     /* evaluate format */
     res = weechat_string_eval_expression(format, pointers, extra_vars, NULL);
