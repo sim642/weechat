@@ -420,7 +420,7 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
      * ${site}: WeeChat web site, example:
      *   https://weechat.org/
      */
-    weechat_hashtable_set (extra_vars, "weechat_site", "${info:weechat_site}");
+    weechat_hashtable_set (extra_vars, "site", "${info:weechat_site}");
 
     /*
      * ${download}: WeeChat download page, example:
@@ -443,7 +443,7 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
 
     /*
      * ${nick}: nick name, example:
-     *   name
+     *   weechat1
      */
     weechat_hashtable_set (extra_vars, "nick", server->nick);
 

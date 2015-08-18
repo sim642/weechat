@@ -1457,15 +1457,19 @@ irc_config_ctcp_create_option (void *data, struct t_config_file *config_file,
                     config_file, section,
                     option_name, "string",
                     _("format for CTCP reply or empty string for blocking "
-                      "CTCP (no reply), following variables are replaced: "
-                      "$version (WeeChat version), "
-                      "$compilation (compilation date), "
-                      "$osinfo (info about OS), "
-                      "$site (WeeChat site), "
-                      "$download (WeeChat site, download page), "
-                      "$time (current date and time as text), "
-                      "$username (username on server), "
-                      "$realname (realname on server)"),
+                      "CTCP (no reply) "
+                      "(note: content is evaluated, see /help eval), "
+                      "some available extra variables: "
+                      "${version} (WeeChat version), "
+                      "${compilation} (compilation date), "
+                      "${osinfo} (info about OS), "
+                      "${site} (WeeChat site), "
+                      "${download} (WeeChat site, download page), "
+                      "${time} (current date and time as text), "
+                      "${nick} (nickname on server), "
+                      "${username} (username on server), "
+                      "${realname} (realname on server), "
+                      "${uptime} (WeeChat uptime)",
                     NULL, 0, 0, default_value, value, 0,
                     NULL, NULL, NULL, NULL, NULL, NULL);
                 rc = (ptr_option) ?

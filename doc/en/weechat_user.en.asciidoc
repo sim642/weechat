@@ -2393,7 +2393,7 @@ It is possible to customize CTCP for one server only, using its internal name
 before CTCP name:
 
 ----
-/set irc.ctcp.freenode.version "WeeChat $version (for freenode)"
+/set irc.ctcp.freenode.version "WeeChat ${version} (for freenode)"
 ----
 
 If you want to restore standard CTCP reply, then remove option:
@@ -2402,23 +2402,25 @@ If you want to restore standard CTCP reply, then remove option:
 /unset irc.ctcp.version
 ----
 
-Following codes can be used in strings and are automatically expanded by WeeChat
-when replying to CTCP:
+Strings are evaluated (see command <<command_weechat_eval,/eval>>)
+and the following additional variables are available for use for CTCP replies:
 
 [width="100%",cols="^2l,4,8",options="header"]
 |===
-| Code         | Description                         | Value/example
-| $clientinfo  | List of supported CTCP              | `ACTION DCC CLIENTINFO FINGER PING SOURCE TIME USERINFO VERSION`
-| $version     | WeeChat version                     | `0.4.0-dev`
-| $versiongit  | WeeChat version + git version ^(1)^ | `0.4.0-dev (git: v0.3.9-104-g7eb5cc4)`
-| $git         | Git version ^(1)^                   | `v0.3.9-104-g7eb5cc4`
-| $compilation | WeeChat compilation date            | `Dec 16 2012`
-| $osinfo      | Info about OS                       | `Linux 2.6.32-5-amd64 / x86_64`
-| $site        | WeeChat site                        | `https://weechat.org/`
-| $download    | WeeChat site, download page         | `https://weechat.org/download`
-| $time        | Current date/time                   | `Sun, 16 Dec 2012 10:40:48 +0100`
-| $username    | User name on IRC server             | `name`
-| $realname    | Real name on IRC server             | `John Doe`
+| Code             | Description                         | Value/example
+| `${clientinfo}`  | List of supported CTCP              | `ACTION DCC CLIENTINFO FINGER PING SOURCE TIME USERINFO VERSION`
+| `${version}`     | WeeChat version                     | `0.4.0-dev`
+| `${versiongit}`  | WeeChat version + git version ^(1)^ | `0.4.0-dev (git: v0.3.9-104-g7eb5cc4)`
+| `${git}`         | Git version ^(1)^                   | `v0.3.9-104-g7eb5cc4`
+| `${compilation}` | WeeChat compilation date            | `Dec 16 2012`
+| `${osinfo}`      | Info about OS                       | `Linux 2.6.32-5-amd64 / x86_64`
+| `${site}`        | WeeChat site                        | `https://weechat.org/`
+| `${download}`    | WeeChat site, download page         | `https://weechat.org/download`
+| `${time}`        | Current date/time                   | `Sun, 16 Dec 2012 10:40:48 +0100`
+| `${nick}`        | Nick name on IRC server             | `weechat1`
+| `${username}`    | User name on IRC server             | `name`
+| `${realname}`    | Real name on IRC server             | `John Doe`
+| `${uptime}`      | WeeChat uptime                      | `3 days 15:16:40`
 |===
 
 [NOTE]
@@ -2429,13 +2431,13 @@ If CTCP options are not defined (by default), CTCP replies are:
 
 [width="100%",cols="^2,4,8",options="header"]
 |===
-| CTCP       | Reply format                         | Example
-| CLIENTINFO | `$clientinfo`                        | `ACTION DCC CLIENTINFO FINGER PING SOURCE TIME USERINFO VERSION`
-| FINGER     | `WeeChat $versiongit`                | `WeeChat 0.4.0-dev (git: v0.3.9-104-g7eb5cc4)`
-| SOURCE     | `$download`                          | `https://weechat.org/download`
-| TIME       | `$time`                              | `Sun, 16 Dec 2012 10:40:48 +0100`
-| USERINFO   | `$username ($realname)`              | `name (John Doe)`
-| VERSION    | `WeeChat $versiongit ($compilation)` | `WeeChat 0.4.0-dev (git: v0.3.9-104-g7eb5cc4) (Dec 16 2012)`
+| CTCP       | Reply format                             | Example
+| CLIENTINFO | `${clientinfo}`                          | `ACTION DCC CLIENTINFO FINGER PING SOURCE TIME USERINFO VERSION`
+| FINGER     | `WeeChat ${versiongit}`                  | `WeeChat 0.4.0-dev (git: v0.3.9-104-g7eb5cc4)`
+| SOURCE     | `${download}`                            | `https://weechat.org/download`
+| TIME       | `${time}`                                | `Sun, 16 Dec 2012 10:40:48 +0100`
+| USERINFO   | `${username} (${realname})`              | `name (John Doe)`
+| VERSION    | `WeeChat ${versiongit} (${compilation})` | `WeeChat 0.4.0-dev (git: v0.3.9-104-g7eb5cc4) (Dec 16 2012)`
 |===
 
 [[irc_target_buffer]]
