@@ -40,12 +40,12 @@
 
 
 struct t_irc_ctcp_reply irc_ctcp_default_reply[] =
-{ { "clientinfo", "$clientinfo" },
-  { "finger",     "WeeChat $versiongit" },
-  { "source",     "$download" },
-  { "time",       "$time" },
-  { "userinfo",   "$username ($realname)" },
-  { "version",    "WeeChat $versiongit ($compilation)" },
+{ { "clientinfo", "${clientinfo}" },
+  { "finger",     "WeeChat ${versiongit}" },
+  { "source",     "${download}" },
+  { "time",       "${time}" },
+  { "userinfo",   "${username} (${realname})" },
+  { "version",    "WeeChat ${versiongit} (${compilation})" },
   { NULL,         NULL },
 };
 
@@ -326,38 +326,44 @@ irc_ctcp_reply_to_nick (struct t_irc_server *server,
 char *
 irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
 {
-    char *res, *temp, *username, *realname;
+    char *res, *username, *realname;
     const char *info;
     time_t now;
     struct tm *local_time;
     char buf[1024];
     struct utsname *buf_uname;
 
-    /*
-     * $clientinfo: supported CTCP, example:
-     *   ACTION DCC CLIENTINFO FINGER PING SOURCE TIME USERINFO VERSION
-     */
-    temp = weechat_string_replace (
-        format, "$clientinfo",
-        "ACTION DCC CLIENTINFO FINGER PING SOURCE TIME USERINFO VERSION");
-    if (!temp)
-        return NULL;
-    res = temp;
+    struct t_hashtable *pointers = weechat_hashtable_new (8,
+                                                          WEECHAT_HASHTABLE_STRING,
+                                                          WEECHAT_HASHTABLE_POINTER,
+                                                          NULL,
+                                                          NULL);
+
+    weechat_hashtable_set (pointers, "server", server); // TODO: doesn't seem to work
+
+    struct t_hashtable *extra_vars = weechat_hashtable_new (8,
+                                                            WEECHAT_HASHTABLE_STRING,
+                                                            WEECHAT_HASHTABLE_STRING,
+                                                            NULL,
+                                                            NULL);
 
     /*
-     * $git: git version (output of "git describe" for a development version
+     * ${clientinfo}: supported CTCP, example:
+     *   ACTION DCC CLIENTINFO FINGER PING SOURCE TIME USERINFO VERSION
+     */
+    weechat_hashtable_set (extra_vars, "clientinfo",
+        "ACTION DCC CLIENTINFO FINGER PING SOURCE TIME USERINFO VERSION");
+
+    /*
+     * ${git}: git version (output of "git describe" for a development version
      * only, empty string if unknown), example:
      *   v0.3.9-104-g7eb5cc4
      */
     info = weechat_info_get ("version_git", "");
-    temp = weechat_string_replace (res, "$git", info);
-    free (res);
-    if (!temp)
-        return NULL;
-    res = temp;
+    weechat_hashtable_set (extra_vars, "git", info);
 
     /*
-     * $versiongit: WeeChat version + git version (if known), examples:
+     * ${versiongit}: WeeChat version + git version (if known), examples:
      *   0.3.9
      *   0.4.0-dev
      *   0.4.0-dev (git: v0.3.9-104-g7eb5cc4)
@@ -368,37 +374,25 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
               (info && info[0]) ? " (git: " : "",
               (info && info[0]) ? info : "",
               (info && info[0]) ? ")" : "");
-    temp = weechat_string_replace (res, "$versiongit", buf);
-    free (res);
-    if (!temp)
-        return NULL;
-    res = temp;
+    weechat_hashtable_set (extra_vars, "versiongit", buf);
 
     /*
-     * $version: WeeChat version, examples:
+     * ${version}: WeeChat version, examples:
      *   0.3.9
      *   0.4.0-dev
      */
     info = weechat_info_get ("version", "");
-    temp = weechat_string_replace (res, "$version", info);
-    free (res);
-    if (!temp)
-        return NULL;
-    res = temp;
+    weechat_hashtable_set (extra_vars, "version", info);
 
     /*
-     * $compilation: compilation date, example:
+     * ${compilation}: compilation date, example:
      *   Dec 16 2012
      */
     info = weechat_info_get ("date", "");
-    temp = weechat_string_replace (res, "$compilation", info);
-    free (res);
-    if (!temp)
-        return NULL;
-    res = temp;
+    weechat_hashtable_set (extra_vars, "compilation", info);
 
     /*
-     * $osinfo: info about OS, example:
+     * ${osinfo}: info about OS, example:
      *   Linux 2.6.32-5-amd64 / x86_64
      */
     buf_uname = (struct utsname *)malloc (sizeof (struct utsname));
@@ -409,42 +403,27 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
             snprintf (buf, sizeof (buf), "%s %s / %s",
                       buf_uname->sysname, buf_uname->release,
                       buf_uname->machine);
-            temp = weechat_string_replace (res, "$osinfo", buf);
-            free (res);
-            if (!temp)
-            {
-                free (buf_uname);
-                return NULL;
-            }
-            res = temp;
+            weechat_hashtable_set (extra_vars, "osinfo", buf);
         }
         free (buf_uname);
     }
 
     /*
-     * $site: WeeChat web site, example:
+     * ${site}: WeeChat web site, example:
      *   https://weechat.org/
      */
     info = weechat_info_get ("weechat_site", "");
-    temp = weechat_string_replace (res, "$site", info);
-    free (res);
-    if (!temp)
-        return NULL;
-    res = temp;
+    weechat_hashtable_set (extra_vars, "weechat_site", info);
 
     /*
-     * $download: WeeChat download page, example:
+     * ${download}: WeeChat download page, example:
      *   https://weechat.org/download
      */
     info = weechat_info_get ("weechat_site_download", "");
-    temp = weechat_string_replace (res, "$download", info);
-    free (res);
-    if (!temp)
-        return NULL;
-    res = temp;
+    weechat_hashtable_set (extra_vars, "download", info);
 
     /*
-     * $time: local date/time of user, example:
+     * ${time}: local date/time of user, example:
      *   Sun, 16 Dec 2012 10:40:48 +0100
      */
     now = time (NULL);
@@ -454,14 +433,10 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
               weechat_config_string (irc_config_look_ctcp_time_format),
               local_time);
     setlocale (LC_ALL, "");
-    temp = weechat_string_replace (res, "$time", buf);
-    free (res);
-    if (!temp)
-        return NULL;
-    res = temp;
+    weechat_hashtable_set (extra_vars, "time", buf);
 
     /*
-     * $username: user name, example:
+     * ${username}: user name, example:
      *   name
      */
     username = weechat_string_eval_expression (
@@ -469,16 +444,12 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
         NULL, NULL, NULL);
     if (username)
     {
-        temp = weechat_string_replace (res, "$username", username);
-        free (res);
-        if (!temp)
-            return NULL;
-        res = temp;
+        weechat_hashtable_set (extra_vars, "username", username);
         free (username);
     }
 
     /*
-     * $realname: real name, example:
+     * ${realname}: real name, example:
      *   John doe
      */
     realname = weechat_string_eval_expression (
@@ -486,13 +457,15 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
         NULL, NULL, NULL);
     if (realname)
     {
-        temp = weechat_string_replace (res, "$realname", realname);
-        free (res);
-        if (!temp)
-            return NULL;
-        res = temp;
+        weechat_hashtable_set (extra_vars, "realname", realname);
         free (realname);
     }
+
+    /* evaluate format */
+    res = weechat_string_eval_expression(format, pointers, extra_vars, NULL);
+
+    weechat_hashtable_free(pointers);
+    weechat_hashtable_free(extra_vars);
 
     /* return result */
     return res;
