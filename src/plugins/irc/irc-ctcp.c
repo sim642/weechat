@@ -351,6 +351,13 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
                                                             NULL,
                                                             NULL);
 
+    struct t_hashtable *options = weechat_hashtable_new (8,
+                                                         WEECHAT_HASHTABLE_STRING,
+                                                         WEECHAT_HASHTABLE_STRING,
+                                                         NULL,
+                                                         NULL);
+    weechat_hashtable_set (options, "extra", "eval");
+
     /*
      * ${clientinfo}: supported CTCP, example:
      *   ACTION DCC CLIENTINFO FINGER PING SOURCE TIME USERINFO VERSION
@@ -363,8 +370,7 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
      * only, empty string if unknown), example:
      *   v0.3.9-104-g7eb5cc4
      */
-    info = weechat_info_get ("version_git", "");
-    weechat_hashtable_set (extra_vars, "git", info);
+    weechat_hashtable_set (extra_vars, "git", "${info:version_git}");
 
     /*
      * ${versiongit}: WeeChat version + git version (if known), examples:
@@ -385,15 +391,13 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
      *   0.3.9
      *   0.4.0-dev
      */
-    info = weechat_info_get ("version", "");
-    weechat_hashtable_set (extra_vars, "version", info);
+    weechat_hashtable_set (extra_vars, "version", "${info:version}");
 
     /*
      * ${compilation}: compilation date, example:
      *   Dec 16 2012
      */
-    info = weechat_info_get ("date", "");
-    weechat_hashtable_set (extra_vars, "compilation", info);
+    weechat_hashtable_set (extra_vars, "compilation", "${info:date}");
 
     /*
      * ${osinfo}: info about OS, example:
@@ -416,15 +420,13 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
      * ${site}: WeeChat web site, example:
      *   https://weechat.org/
      */
-    info = weechat_info_get ("weechat_site", "");
-    weechat_hashtable_set (extra_vars, "weechat_site", info);
+    weechat_hashtable_set (extra_vars, "weechat_site", "${info:weechat_site}");
 
     /*
      * ${download}: WeeChat download page, example:
      *   https://weechat.org/download
      */
-    info = weechat_info_get ("weechat_site_download", "");
-    weechat_hashtable_set (extra_vars, "download", info);
+    weechat_hashtable_set (extra_vars, "download", "${info:weechat_site_download}");
 
     /*
      * ${time}: local date/time of user, example:
@@ -432,7 +434,7 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
      */
     now = time (NULL);
     local_time = localtime (&now);
-    setlocale (LC_ALL, "C");
+    setlocale (LC_ALL, "C"); /* ${date:} evaluation may use different locale */
     strftime (buf, sizeof (buf),
               weechat_config_string (irc_config_look_ctcp_time_format),
               local_time);
@@ -475,6 +477,7 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
      * ${uptime}: WeeChat uptime, example:
      *   3 days 15:16:40
      */
+    now = time (NULL);
     running_time = now - weechat_first_start_time;
     day = running_time / (60 * 60 * 24);
     hour = (running_time % (60 * 60 * 24)) / (60 * 60);
@@ -490,10 +493,11 @@ irc_ctcp_replace_variables (struct t_irc_server *server, const char *format)
     weechat_hashtable_set (extra_vars, "uptime", buf);
 
     /* evaluate format */
-    res = weechat_string_eval_expression(format, pointers, extra_vars, NULL);
+    res = weechat_string_eval_expression(format, pointers, extra_vars, options);
 
     weechat_hashtable_free(pointers);
     weechat_hashtable_free(extra_vars);
+    weechat_hashtable_free(options);
 
     /* return result */
     return res;
