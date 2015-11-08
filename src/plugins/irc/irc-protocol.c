@@ -1938,7 +1938,8 @@ IRC_PROTOCOL_CALLBACK(privmsg)
             {
                 /* standard message (to "#channel") */
                 str_color = irc_color_for_tags (
-                    irc_nick_find_color_name ((ptr_nick) ? ptr_nick->name : nick));
+                    irc_nick_find_color_name ((ptr_nick) ? ptr_nick->name : nick,
+                                              (ptr_nick) ? ptr_nick->prefix : NULL));
                 snprintf (str_tags, sizeof (str_tags),
                           "notify_message,prefix_nick_%s",
                           (str_color) ? str_color : "default");
@@ -2010,7 +2011,7 @@ IRC_PROTOCOL_CALLBACK(privmsg)
             if (weechat_config_boolean (irc_config_look_color_pv_nick_like_channel))
             {
                 str_color = irc_color_for_tags (
-                    irc_nick_find_color_name (nick));
+                    irc_nick_find_color_name (nick, NULL));
             }
             else
             {
@@ -4324,7 +4325,7 @@ IRC_PROTOCOL_CALLBACK(353)
                     if (irc_server_strcasecmp (server, nickname, server->nick) == 0)
                         strcat (str_nicks, IRC_COLOR_CHAT_NICK_SELF);
                     else
-                        strcat (str_nicks, irc_nick_find_color (nickname));
+                        strcat (str_nicks, irc_nick_find_color (nickname, NULL));
                 }
                 else
                     strcat (str_nicks, IRC_COLOR_RESET);
@@ -4558,7 +4559,7 @@ IRC_PROTOCOL_CALLBACK(366)
                                     if (irc_server_strcasecmp (server, nickname, server->nick) == 0)
                                         strcat (string, IRC_COLOR_CHAT_NICK_SELF);
                                     else
-                                        strcat (string, irc_nick_find_color (nickname));
+                                        strcat (string, irc_nick_find_color (nickname, NULL));
                                 }
                                 else
                                     strcat (string, IRC_COLOR_RESET);
