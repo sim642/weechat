@@ -161,12 +161,31 @@ const char *
 irc_info_info_irc_nick_color_cb (void *data, const char *info_name,
                                  const char *arguments)
 {
+    char *pos_comma, *nickname;
+    const char *pos_prefix, *color;
+
     /* make C compiler happy */
     (void) data;
     (void) info_name;
 
-    return (arguments && arguments[0]) ?
-        irc_nick_find_color (arguments, NULL) : NULL;
+    if (!arguments || !arguments[0])
+        return NULL;
+
+    pos_comma = strchr (arguments, ',');
+    if (pos_comma)
+    {
+        pos_prefix = pos_comma + 1;
+        nickname = weechat_strndup (arguments, pos_comma - arguments);
+        if (nickname)
+        {
+            color = irc_nick_find_color (nickname, pos_prefix);
+            free (nickname);
+        }
+    }
+    else
+        color = irc_nick_find_color (arguments, NULL);
+
+    return color;
 }
 
 /*
@@ -177,12 +196,31 @@ const char *
 irc_info_info_irc_nick_color_name_cb (void *data, const char *info_name,
                                       const char *arguments)
 {
+    char *pos_comma, *nickname;
+    const char *pos_prefix, *color_name;
+
     /* make C compiler happy */
     (void) data;
     (void) info_name;
 
-    return (arguments && arguments[0]) ?
-        irc_nick_find_color_name (arguments, NULL) : NULL;
+    if (!arguments || !arguments[0])
+        return NULL;
+
+    pos_comma = strchr (arguments, ',');
+    if (pos_comma)
+    {
+        pos_prefix = pos_comma + 1;
+        nickname = weechat_strndup (arguments, pos_comma - arguments);
+        if (nickname)
+        {
+            color_name = irc_nick_find_color_name (nickname, pos_prefix);
+            free (nickname);
+        }
+    }
+    else
+        color_name = irc_nick_find_color_name (arguments, NULL);
+
+    return color_name;
 }
 
 /*
@@ -815,12 +853,12 @@ irc_info_init ()
     weechat_hook_info (
         "irc_nick_color",
         N_("get nick color code"),
-        N_("nickname"),
+        N_("nickname,prefix (prefix is optional)"),
         &irc_info_info_irc_nick_color_cb, NULL);
     weechat_hook_info (
         "irc_nick_color_name",
         N_("get nick color name"),
-        N_("nickname"),
+        N_("nickname,prefix (prefix is optional)"),
         &irc_info_info_irc_nick_color_name_cb, NULL);
     weechat_hook_info (
         "irc_buffer",
