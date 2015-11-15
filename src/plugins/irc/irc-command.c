@@ -5567,8 +5567,12 @@ int
 irc_command_unban (void *data, struct t_gui_buffer *buffer, int argc,
                    char **argv, char **argv_eol)
 {
+    struct t_irc_modelist *ptr_modelist;
+    struct t_irc_modelist_item *ptr_item;
     char *pos_channel;
     int pos_args;
+    long number;
+    char *error;
 
     IRC_BUFFER_GET_SERVER_CHANNEL(buffer);
     IRC_COMMAND_CHECK_SERVER("unban", 1);
@@ -5609,8 +5613,26 @@ irc_command_unban (void *data, struct t_gui_buffer *buffer, int argc,
     /* loop on users */
     while (argv[pos_args])
     {
-        irc_command_send_ban (ptr_server, pos_channel, "-b",
-                              argv[pos_args]);
+        error = NULL;
+        number = strtol (argv[pos_args], &error, 10);
+        if (error && !error[0])
+        {
+            ptr_modelist = irc_modelist_search (ptr_channel, 'b');
+            if (ptr_modelist)
+            {
+                ptr_item = irc_modelist_item_number (ptr_modelist, number - 1);
+                if (ptr_item)
+                {
+                    irc_command_send_ban (ptr_server, pos_channel, "-b",
+                                          ptr_item->mask);
+                }
+            }
+        }
+        else
+        {
+            irc_command_send_ban (ptr_server, pos_channel, "-b",
+                                  argv[pos_args]);
+        }
         pos_args++;
     }
 
@@ -6797,7 +6819,7 @@ irc_command_init ()
         N_("unban nicks or hosts"),
         N_("[<channel>] <nick> [<nick>...]"),
         N_("channel: channel name\n"
-           "   nick: nick or host"),
+           "   nick: nick, host or ban number"),
         "%(irc_bans)", &irc_command_unban, NULL);
     weechat_hook_command (
         "unquiet",
