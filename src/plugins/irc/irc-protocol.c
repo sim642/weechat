@@ -927,6 +927,7 @@ IRC_PROTOCOL_CALLBACK(kick)
     int rejoin;
     struct t_irc_channel *ptr_channel;
     struct t_irc_nick *ptr_nick, *ptr_nick_kicked;
+    struct t_irc_modelist *ptr_modelist;
 
     IRC_PROTOCOL_MIN_ARGS(4);
     IRC_PROTOCOL_CHECK_HOST;
@@ -985,6 +986,10 @@ IRC_PROTOCOL_CALLBACK(kick)
          * more
          */
         irc_nick_free_all (server, ptr_channel);
+
+        for (ptr_modelist = ptr_channel->modelists; ptr_modelist;
+             ptr_modelist = ptr_modelist->next_modelist)
+            ptr_modelist->state = IRC_MODELIST_STATE_MODIFIED;
 
         /* read option "autorejoin" in server */
         rejoin = IRC_SERVER_OPTION_BOOLEAN(server, IRC_SERVER_OPTION_AUTOREJOIN);
@@ -1046,6 +1051,7 @@ IRC_PROTOCOL_CALLBACK(kill)
     char *pos_comment;
     struct t_irc_channel *ptr_channel;
     struct t_irc_nick *ptr_nick, *ptr_nick_killed;
+    struct t_irc_modelist *ptr_modelist;
 
     IRC_PROTOCOL_MIN_ARGS(3);
     IRC_PROTOCOL_CHECK_HOST;
@@ -1100,6 +1106,10 @@ IRC_PROTOCOL_CALLBACK(kill)
              */
             irc_nick_free_all (server, ptr_channel);
 
+            for (ptr_modelist = ptr_channel->modelists; ptr_modelist;
+                 ptr_modelist = ptr_modelist->next_modelist)
+                ptr_modelist->state = IRC_MODELIST_STATE_MODIFIED;
+
             irc_bar_item_update_channel ();
         }
         else
@@ -1142,7 +1152,7 @@ IRC_PROTOCOL_CALLBACK(mode)
         ptr_channel = irc_channel_search (server, argv[2]);
         if (ptr_channel)
         {
-            smart_filter = irc_mode_channel_set (server, ptr_channel,
+            smart_filter = irc_mode_channel_set (server, ptr_channel, host,
                                                  pos_modes);
         }
         local_mode = (irc_server_strcasecmp (server, nick, server->nick) == 0);
@@ -1641,6 +1651,7 @@ IRC_PROTOCOL_CALLBACK(part)
     struct t_irc_channel *ptr_channel;
     struct t_irc_nick *ptr_nick;
     struct t_irc_channel_speaking *ptr_nick_speaking;
+    struct t_irc_modelist *ptr_modelist;
 
     IRC_PROTOCOL_MIN_ARGS(3);
     IRC_PROTOCOL_CHECK_HOST;
@@ -1736,6 +1747,10 @@ IRC_PROTOCOL_CALLBACK(part)
     if (local_part)
     {
         irc_nick_free_all (server, ptr_channel);
+
+        for (ptr_modelist = ptr_channel->modelists; ptr_modelist;
+             ptr_modelist = ptr_modelist->next_modelist)
+            ptr_modelist->state = IRC_MODELIST_STATE_MODIFIED;
 
         /* cycling ? => rejoin channel immediately */
         if (ptr_channel->cycle)
@@ -3255,7 +3270,7 @@ IRC_PROTOCOL_CALLBACK(324)
         irc_channel_set_modes (ptr_channel, ((argc > 4) ? argv_eol[4] : NULL));
         if (argc > 4)
         {
-            (void) irc_mode_channel_set (server, ptr_channel,
+            (void) irc_mode_channel_set (server, ptr_channel, host,
                                          ptr_channel->modes);
         }
     }
