@@ -50,6 +50,7 @@
 #include "irc-ignore.h"
 #include "irc-message.h"
 #include "irc-mode.h"
+#include "irc-modelist.h"
 #include "irc-msgbuffer.h"
 #include "irc-nick.h"
 #include "irc-sasl.h"
@@ -4703,6 +4704,7 @@ IRC_PROTOCOL_CALLBACK(367)
 {
     struct t_irc_channel *ptr_channel;
     struct t_gui_buffer *ptr_buffer;
+    struct t_irc_modelist *ptr_modelist;
     time_t datetime;
     const char *nick_address;
 
@@ -4711,6 +4713,7 @@ IRC_PROTOCOL_CALLBACK(367)
     ptr_channel = irc_channel_search (server, argv[3]);
     ptr_buffer = (ptr_channel && ptr_channel->nicks) ?
         ptr_channel->buffer : server->buffer;
+    ptr_modelist = irc_modelist_search (ptr_channel, 'b');
 
     if (argc >= 6)
     {
@@ -4720,6 +4723,8 @@ IRC_PROTOCOL_CALLBACK(367)
         if (argc >= 7)
         {
             datetime = (time_t)(atol (argv[6]));
+            if (ptr_modelist)
+                irc_modelist_item_new (ptr_modelist, argv[4], argv[5], datetime);
             weechat_printf_date_tags (
                 irc_msgbuffer_get_target_buffer (
                     server, NULL, command, "banlist", ptr_buffer),
@@ -4740,6 +4745,8 @@ IRC_PROTOCOL_CALLBACK(367)
         }
         else
         {
+            if (ptr_modelist)
+                irc_modelist_item_new (ptr_modelist, argv[4], argv[5], 0);
             weechat_printf_date_tags (
                 irc_msgbuffer_get_target_buffer (
                     server, NULL, command, "banlist", ptr_buffer),
@@ -4759,6 +4766,8 @@ IRC_PROTOCOL_CALLBACK(367)
     }
     else
     {
+        if (ptr_modelist)
+            irc_modelist_item_new (ptr_modelist, argv[4], NULL, 0);
         weechat_printf_date_tags (
             irc_msgbuffer_get_target_buffer (
                 server, NULL, command, "banlist", ptr_buffer),
@@ -4790,6 +4799,7 @@ IRC_PROTOCOL_CALLBACK(368)
     char *pos_args;
     struct t_irc_channel *ptr_channel;
     struct t_gui_buffer *ptr_buffer;
+    struct t_irc_modelist *ptr_modelist;
 
     IRC_PROTOCOL_MIN_ARGS(4);
 
@@ -4799,6 +4809,9 @@ IRC_PROTOCOL_CALLBACK(368)
     ptr_channel = irc_channel_search (server, argv[3]);
     ptr_buffer = (ptr_channel && ptr_channel->nicks) ?
         ptr_channel->buffer : server->buffer;
+    ptr_modelist = irc_modelist_search (ptr_channel, 'b');
+    if (ptr_modelist)
+        ptr_modelist->state = IRC_MODELIST_STATE_RECEIVED;
     weechat_printf_date_tags (
         irc_msgbuffer_get_target_buffer (
             server, NULL, command, "banlist", ptr_buffer),
