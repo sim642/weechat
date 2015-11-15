@@ -434,6 +434,41 @@ irc_completion_bans_cb (void *data, const char *completion_item,
 }
 
 /*
+ * Adds quiet masks current channel to completion list.
+ */
+
+int
+irc_completion_quiets_cb (void *data, const char *completion_item,
+                         struct t_gui_buffer *buffer,
+                         struct t_gui_completion *completion)
+{
+    struct t_irc_modelist *ptr_modelist;
+    struct t_irc_modelist_item *ptr_item;
+
+    IRC_BUFFER_GET_SERVER_CHANNEL(buffer);
+
+    /* make C compiler happy */
+    (void) data;
+    (void) completion_item;
+
+    if (ptr_channel)
+    {
+        ptr_modelist = irc_modelist_search (ptr_channel, 'q');
+        if (ptr_modelist)
+        {
+            for (ptr_item = ptr_modelist->items; ptr_item; ptr_item = ptr_item->next_item)
+            {
+                weechat_hook_completion_list_add (completion,
+                                                  ptr_item->mask,
+                                                  0, WEECHAT_LIST_POS_END);
+            }
+        }
+    }
+
+    return WEECHAT_RC_OK;
+}
+
+/*
  * Adds topic of current channel to completion list.
  */
 
@@ -723,6 +758,9 @@ irc_completion_init ()
     weechat_hook_completion ("irc_bans",
                              N_("ban masks of current IRC channel"),
                              &irc_completion_bans_cb, NULL);
+    weechat_hook_completion ("irc_quiets",
+                             N_("quiet masks of current IRC channel"),
+                             &irc_completion_quiets_cb, NULL);
     weechat_hook_completion ("irc_channel_topic",
                              N_("topic of current IRC channel"),
                              &irc_completion_channel_topic_cb, NULL);
