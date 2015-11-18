@@ -2431,7 +2431,7 @@ IRC_PROTOCOL_CALLBACK(wallops)
 
 IRC_PROTOCOL_CALLBACK(001)
 {
-    char *server_command, **commands, **ptr_command, *vars_replaced, *away_msg;
+    char *server_command, **commands, **ptr_command, *vars_replaced, *slash_command, *away_msg;
 
     IRC_PROTOCOL_MIN_ARGS(3);
 
@@ -2485,8 +2485,23 @@ IRC_PROTOCOL_CALLBACK(001)
             {
                 vars_replaced = irc_message_replace_vars (server, NULL,
                                                           *ptr_command);
-                weechat_command (server->buffer,
-                                 (vars_replaced) ? vars_replaced : *ptr_command);
+                if (weechat_string_is_command_char (*ptr_command))
+                {
+                    weechat_command (server->buffer,
+                                     (vars_replaced) ? vars_replaced : *ptr_command);
+                }
+                else
+                {
+                    slash_command = malloc (1 + strlen((vars_replaced) ? vars_replaced : *ptr_command) + 1);
+                    if (slash_command)
+                    {
+                        strcpy (slash_command, "/");
+                        strcat (slash_command, (vars_replaced) ? vars_replaced : *ptr_command);
+                        weechat_command (server->buffer, slash_command);
+                        free (slash_command);
+                    }
+                }
+
                 if (vars_replaced)
                     free (vars_replaced);
             }
