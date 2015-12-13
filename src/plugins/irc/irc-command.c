@@ -1105,7 +1105,7 @@ irc_command_cap (void *data, struct t_gui_buffer *buffer, int argc,
          * enabled
          */
         irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
-                          "CAP LS");
+                          "CAP LS 302");
         irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
                           "CAP LIST");
     }
