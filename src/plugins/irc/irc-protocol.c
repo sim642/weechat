@@ -206,8 +206,11 @@ IRC_PROTOCOL_CALLBACK(account)
 {
     struct t_irc_channel *ptr_channel;
     struct t_irc_nick *ptr_nick;
+    int cap_account_notify;
 
     IRC_PROTOCOL_MIN_ARGS(3);
+
+    cap_account_notify = weechat_hashtable_has_key (server, "account-notify");
 
     for (ptr_channel = server->channels; ptr_channel;
          ptr_channel = ptr_channel->next_channel)
@@ -217,7 +220,7 @@ IRC_PROTOCOL_CALLBACK(account)
         {
             if (ptr_nick->account)
                 free (ptr_nick->account);
-            ptr_nick->account = (server->cap_account_notify) ?
+            ptr_nick->account = (cap_account_notify) ?
                 strdup (argv[2]) : strdup ("*");
         }
     }
@@ -462,18 +465,12 @@ IRC_PROTOCOL_CALLBACK(cap)
             {
                 for (i = 0; i < num_caps_supported; i++)
                 {
+                    weechat_hashtable_set (server->cap_list, caps_supported[i], NULL);
+
                     if (strcmp (caps_supported[i], "sasl") == 0)
                     {
                         sasl_to_do = 1;
                         break;
-                    }
-                    else if (strcmp (caps_supported[i], "away-notify") == 0)
-                    {
-                        server->cap_away_notify = 1;
-                    }
-                    else if (strcmp (caps_supported[i], "account-notify") == 0)
-                    {
-                        server->cap_account_notify = 1;
                     }
                 }
                 weechat_string_free_split (caps_supported);
@@ -600,14 +597,7 @@ IRC_PROTOCOL_CALLBACK(cap)
             {
                 for (i = 0; i < num_caps_removed; i++)
                 {
-                    if (strcmp (caps_removed[i], "away-notify") == 0)
-                    {
-                        server->cap_away_notify = 0;
-                    }
-                    else if (strcmp (caps_removed[i], "account-notify") == 0)
-                    {
-                        server->cap_account_notify = 0;
-                    }
+                    weechat_hashtable_remove (server->cap_list, caps_removed[i]);
                 }
                 weechat_string_free_split (caps_removed);
             }
@@ -4408,7 +4398,7 @@ IRC_PROTOCOL_CALLBACK(354)
     if (ptr_channel && ptr_nick)
     {
         if (pos_attr
-            && (server->cap_away_notify
+            && (weechat_hashtable_has_key (server->cap_list, "away-notify")
                 || ((IRC_SERVER_OPTION_INTEGER(
                          server, IRC_SERVER_OPTION_AWAY_CHECK) > 0)
                     && ((IRC_SERVER_OPTION_INTEGER(
@@ -4431,7 +4421,7 @@ IRC_PROTOCOL_CALLBACK(354)
         if (ptr_nick->account)
             free (ptr_nick->account);
         ptr_nick->account = (ptr_channel && pos_account
-                             && server->cap_account_notify) ?
+                             && weechat_hashtable_has_key (server->cap_list, "account-notify")) ?
             strdup (pos_account) : strdup ("*");
     }
 
