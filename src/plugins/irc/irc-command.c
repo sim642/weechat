@@ -1084,6 +1084,8 @@ int
 irc_command_cap (void *data, struct t_gui_buffer *buffer, int argc,
                  char **argv, char **argv_eol)
 {
+    char *cap_cmd;
+
     IRC_BUFFER_GET_SERVER(buffer);
     IRC_COMMAND_CHECK_SERVER("cap", 1);
 
@@ -1092,11 +1094,27 @@ irc_command_cap (void *data, struct t_gui_buffer *buffer, int argc,
 
     if (argc > 1)
     {
-        irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
-                          "CAP %s%s%s",
-                          argv[1],
-                          (argv_eol[2]) ? " :" : "",
-                          (argv_eol[2]) ? argv_eol[2] : "");
+        cap_cmd = strdup (argv[1]);
+        if (!cap_cmd)
+            WEECHAT_COMMAND_ERROR;
+
+        weechat_string_toupper (cap_cmd);
+
+        if ((weechat_strcasecmp (argv[1], "ls") == 0) && !argv_eol[2])
+        {
+            irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
+                              "CAP LS 302");
+        }
+        else
+        {
+            irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
+                              "CAP %s%s%s",
+                              cap_cmd,
+                              (argv_eol[2]) ? " :" : "",
+                              (argv_eol[2]) ? argv_eol[2] : "");
+        }
+
+        free (cap_cmd);
     }
     else
     {
