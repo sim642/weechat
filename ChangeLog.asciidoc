@@ -40,6 +40,7 @@ https://weechat.org/files/releasenotes/ReleaseNotes-devel.html[release notes]
 * irc: make /ban and /quiet lists indexed (task #11374)
 * irc: allow /unban and /unquiet by list index (task #10876, task #11374)
 * irc: add ban and quiet list completions to /unban and /unquiet (task #10876)
+* irc: make command characters optional in server's command option
 * logger: display system error when the log file can not be written
   (issue #541)
 * script: add completion with languages and extensions, support search by
