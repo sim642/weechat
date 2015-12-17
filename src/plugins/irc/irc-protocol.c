@@ -529,10 +529,6 @@ IRC_PROTOCOL_CALLBACK(cap)
                                                caps_supported[i], NULL);
                     }
                 }
-                if (cap_option)
-                    free (cap_option);
-                if (cap_req)
-                    free (cap_req);
             }
 
             if (last_reply)
@@ -4581,7 +4577,7 @@ IRC_PROTOCOL_CALLBACK(353)
                                 irc_nick_get_prefix_color_name (server,
                                                                 prefixes[0])));
 
-                    if (weechat_hashtable_has_key(server->cap_list, "multi_prefix") &&
+                    if (weechat_hashtable_has_key (server->cap_list, "multi-prefix") &&
                         weechat_config_boolean (irc_config_look_multi_prefix_in_names))
                         strcat (str_nicks, prefixes);
                     else
@@ -4825,7 +4821,7 @@ IRC_PROTOCOL_CALLBACK(366)
                                             strcat (string, weechat_color (prefix_color));
                                         }
 
-                                        if (server->cap_multi_prefix &&
+                                        if (weechat_hashtable_has_key (server->cap_list, "multi-prefix") &&
                                             weechat_config_boolean (irc_config_look_multi_prefix_in_names))
                                             strcat (string, prefix);
                                         else

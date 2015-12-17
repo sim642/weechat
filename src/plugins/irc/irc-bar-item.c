@@ -508,7 +508,7 @@ irc_bar_item_input_prompt (void *data, struct t_gui_bar_item *item,
                               irc_nick_get_prefix_color_name (
                                   server, ptr_nick->prefix[0])),
                           ptr_nick->prefix[0],
-                          (server->cap_multi_prefix &&
+                          (weechat_hashtable_has_key (server->cap_list, "multi-prefix") &&
                            weechat_config_boolean (
                                irc_config_look_multi_prefix_in_prompt)) ?
                            ptr_nick->prefix + 1 : "");

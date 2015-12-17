@@ -5864,9 +5864,15 @@ irc_server_print_log ()
         weechat_log_printf ("  nick_first_tried . . : %d",    ptr_server->nick_first_tried);
         weechat_log_printf ("  nick_alternate_number: %d",    ptr_server->nick_alternate_number);
         weechat_log_printf ("  nick . . . . . . . . : '%s'",  ptr_server->nick);
+        weechat_log_printf ("  checking_cap_ls. . . : %d",    ptr_server->checking_cap_ls);
         weechat_log_printf ("  nick_modes . . . . . : '%s'",  ptr_server->nick_modes);
-        weechat_log_printf ("  cap_away_notify. . . : %d",    ptr_server->cap_away_notify);
-        weechat_log_printf ("  cap_account_notify . : %d",    ptr_server->cap_account_notify);
+        weechat_log_printf ("  cap_ls . . . . . . . : 0x%lx (hashtable: '%s')",
+                            ptr_server->cap_ls,
+                            weechat_hashtable_get_string (ptr_server->cap_ls, "keys_values"));
+        weechat_log_printf ("  checking_cap_list. . : %d",    ptr_server->checking_cap_list);
+        weechat_log_printf ("  cap_list . . . . . . : 0x%lx (hashtable: '%s')",
+                            ptr_server->cap_list,
+                            weechat_hashtable_get_string (ptr_server->cap_list, "keys_values"));
         weechat_log_printf ("  isupport . . . . . . : '%s'",  ptr_server->isupport);
         weechat_log_printf ("  prefix_modes . . . . : '%s'",  ptr_server->prefix_modes);
         weechat_log_printf ("  prefix_chars . . . . : '%s'",  ptr_server->prefix_chars);

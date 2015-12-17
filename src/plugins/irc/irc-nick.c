@@ -526,7 +526,7 @@ irc_nick_get_prefix_for_nicklist (struct t_irc_server *server,
 {
     char *prefix;
 
-    if (server->cap_multi_prefix &&
+    if (weechat_hashtable_has_key (server->cap_list, "multi-prefix") &&
         weechat_config_boolean (irc_config_look_multi_prefix_in_nicklist))
         prefix = nick->prefix;
     else
