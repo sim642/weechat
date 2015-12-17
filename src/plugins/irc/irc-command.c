@@ -41,6 +41,7 @@
 #include "irc-ignore.h"
 #include "irc-input.h"
 #include "irc-message.h"
+#include "irc-modelist.h"
 #include "irc-msgbuffer.h"
 #include "irc-nick.h"
 #include "irc-notify.h"
@@ -5633,8 +5634,12 @@ int
 irc_command_unban (void *data, struct t_gui_buffer *buffer, int argc,
                    char **argv, char **argv_eol)
 {
+    struct t_irc_modelist *ptr_modelist;
+    struct t_irc_modelist_item *ptr_item;
     char *pos_channel;
     int pos_args;
+    long number;
+    char *error;
 
     IRC_BUFFER_GET_SERVER_CHANNEL(buffer);
     IRC_COMMAND_CHECK_SERVER("unban", 1);
@@ -5675,8 +5680,26 @@ irc_command_unban (void *data, struct t_gui_buffer *buffer, int argc,
     /* loop on users */
     while (argv[pos_args])
     {
-        irc_command_send_ban (ptr_server, pos_channel, "-b",
-                              argv[pos_args]);
+        error = NULL;
+        number = strtol (argv[pos_args], &error, 10);
+        if (error && !error[0])
+        {
+            ptr_modelist = irc_modelist_search (ptr_channel, 'b');
+            if (ptr_modelist)
+            {
+                ptr_item = irc_modelist_item_number (ptr_modelist, number - 1);
+                if (ptr_item)
+                {
+                    irc_command_send_ban (ptr_server, pos_channel, "-b",
+                                          ptr_item->mask);
+                }
+            }
+        }
+        else
+        {
+            irc_command_send_ban (ptr_server, pos_channel, "-b",
+                                  argv[pos_args]);
+        }
         pos_args++;
     }
 
@@ -5691,8 +5714,12 @@ int
 irc_command_unquiet (void *data, struct t_gui_buffer *buffer, int argc,
                      char **argv, char **argv_eol)
 {
+    struct t_irc_modelist *ptr_modelist;
+    struct t_irc_modelist_item *ptr_item;
     char *pos_channel;
     int pos_args;
+    long number;
+    char *error;
 
     IRC_BUFFER_GET_SERVER_CHANNEL(buffer);
     IRC_COMMAND_CHECK_SERVER("unquiet", 1);
@@ -5735,9 +5762,28 @@ irc_command_unquiet (void *data, struct t_gui_buffer *buffer, int argc,
         /* loop on users */
         while (argv[pos_args])
         {
-            irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
-                              "MODE %s -q %s",
-                              pos_channel, argv[pos_args]);
+            error = NULL;
+            number = strtol (argv[pos_args], &error, 10);
+            if (error && !error[0])
+            {
+                ptr_modelist = irc_modelist_search (ptr_channel, 'q');
+                if (ptr_modelist)
+                {
+                    ptr_item = irc_modelist_item_number (ptr_modelist, number - 1);
+                    if (ptr_item)
+                    {
+                        irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
+                                          "MODE %s -q %s",
+                                          pos_channel, ptr_item->mask);
+                    }
+                }
+            }
+            else
+            {
+                irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
+                                  "MODE %s -q %s",
+                                  pos_channel, argv[pos_args]);
+            }
             pos_args++;
         }
     }
@@ -6879,15 +6925,15 @@ irc_command_init ()
         N_("unban nicks or hosts"),
         N_("[<channel>] <nick> [<nick>...]"),
         N_("channel: channel name\n"
-           "   nick: nick or host"),
-        NULL, &irc_command_unban, NULL);
+           "   nick: nick, host or ban number"),
+        "%(irc_bans)", &irc_command_unban, NULL);
     weechat_hook_command (
         "unquiet",
         N_("unquiet nicks or hosts"),
         N_("[<channel>] <nick> [<nick>...]"),
         N_("channel: channel name\n"
-           "   nick: nick or host"),
-        "%(irc_channel_nicks_hosts)", &irc_command_unquiet, NULL);
+           "   nick: nick, host or quiet number"),
+        "%(irc_quiets)", &irc_command_unquiet, NULL);
     weechat_hook_command (
         "userhost",
         N_("return a list of information about nicks"),
