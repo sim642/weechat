@@ -1009,9 +1009,18 @@ irc_server_alloc (const char *name)
     new_server->nick_alternate_number = -1;
     new_server->nick = NULL;
     new_server->nick_modes = NULL;
-    new_server->cap_away_notify = 0;
-    new_server->cap_account_notify = 0;
-    new_server->cap_multi_prefix = 0;
+    new_server->checking_cap_ls = 0;
+    new_server->cap_ls = weechat_hashtable_new (32,
+                                                WEECHAT_HASHTABLE_STRING,
+                                                WEECHAT_HASHTABLE_STRING,
+                                                NULL,
+                                                NULL);
+    new_server->checking_cap_list = 0;
+    new_server->cap_list = weechat_hashtable_new (32,
+                                                  WEECHAT_HASHTABLE_STRING,
+                                                  WEECHAT_HASHTABLE_STRING,
+                                                  NULL,
+                                                  NULL);
     new_server->isupport = NULL;
     new_server->prefix_modes = NULL;
     new_server->prefix_chars = NULL;
@@ -3035,7 +3044,7 @@ irc_server_timer_cb (void *data, int remaining_calls)
                 /* check away (only if lag check was not done) */
                 away_check = IRC_SERVER_OPTION_INTEGER(
                     ptr_server, IRC_SERVER_OPTION_AWAY_CHECK);
-                if (!ptr_server->cap_away_notify
+                if (!weechat_hashtable_has_key (ptr_server->cap_list, "away-notify")
                     && (away_check > 0)
                     && ((ptr_server->last_away_check == 0)
                         || (current_time >= ptr_server->last_away_check + (away_check * 60))))
@@ -3351,7 +3360,7 @@ irc_server_login (struct t_irc_server *server)
 
     if (irc_server_sasl_enabled (server) || (capabilities && capabilities[0]))
     {
-        irc_server_sendf (server, 0, NULL, "CAP LS");
+        irc_server_sendf (server, 0, NULL, "CAP LS 302");
     }
 
     username2 = (username && username[0]) ?
@@ -4683,9 +4692,10 @@ irc_server_disconnect (struct t_irc_server *server, int switch_address,
         weechat_bar_item_update ("input_prompt");
         weechat_bar_item_update ("irc_nick_modes");
     }
-    server->cap_away_notify = 0;
-    server->cap_account_notify = 0;
-    server->cap_multi_prefix = 0;
+    server->checking_cap_ls = 0;
+    weechat_hashtable_remove_all (server->cap_ls);
+    server->checking_cap_list = 0;
+    weechat_hashtable_remove_all (server->cap_list);
     server->is_away = 0;
     server->away_time = 0;
     server->lag = 0;
@@ -5267,9 +5277,10 @@ irc_server_hdata_server_cb (void *data, const char *hdata_name)
         WEECHAT_HDATA_VAR(struct t_irc_server, nick_alternate_number, INTEGER, 0, NULL, NULL);
         WEECHAT_HDATA_VAR(struct t_irc_server, nick, STRING, 0, NULL, NULL);
         WEECHAT_HDATA_VAR(struct t_irc_server, nick_modes, STRING, 0, NULL, NULL);
-        WEECHAT_HDATA_VAR(struct t_irc_server, cap_away_notify, INTEGER, 0, NULL, NULL);
-        WEECHAT_HDATA_VAR(struct t_irc_server, cap_account_notify, INTEGER, 0, NULL, NULL);
-        WEECHAT_HDATA_VAR(struct t_irc_server, cap_multi_prefix, INTEGER, 0, NULL, NULL);
+        WEECHAT_HDATA_VAR(struct t_irc_server, checking_cap_ls, INTEGER, 0, NULL, NULL);
+        WEECHAT_HDATA_VAR(struct t_irc_server, cap_ls, HASHTABLE, 0, NULL, NULL);
+        WEECHAT_HDATA_VAR(struct t_irc_server, checking_cap_list, INTEGER, 0, NULL, NULL);
+        WEECHAT_HDATA_VAR(struct t_irc_server, cap_list, HASHTABLE, 0, NULL, NULL);
         WEECHAT_HDATA_VAR(struct t_irc_server, isupport, STRING, 0, NULL, NULL);
         WEECHAT_HDATA_VAR(struct t_irc_server, prefix_modes, STRING, 0, NULL, NULL);
         WEECHAT_HDATA_VAR(struct t_irc_server, prefix_chars, STRING, 0, NULL, NULL);
@@ -5485,11 +5496,13 @@ irc_server_add_to_infolist (struct t_infolist *infolist,
         return 0;
     if (!weechat_infolist_new_var_string (ptr_item, "nick_modes", server->nick_modes))
         return 0;
-    if (!weechat_infolist_new_var_integer (ptr_item, "cap_away_notify", server->cap_away_notify))
+    if (!weechat_infolist_new_var_integer (ptr_item, "checking_cap_ls", server->checking_cap_ls))
         return 0;
-    if (!weechat_infolist_new_var_integer (ptr_item, "cap_account_notify", server->cap_account_notify))
+    if (!weechat_hashtable_add_to_infolist (server->cap_ls, ptr_item, "cap_ls"))
         return 0;
-    if (!weechat_infolist_new_var_integer (ptr_item, "cap_multi_prefix", server->cap_multi_prefix))
+    if (!weechat_infolist_new_var_integer (ptr_item, "checking_cap_list", server->checking_cap_list))
+        return 0;
+    if (!weechat_hashtable_add_to_infolist (server->cap_list, ptr_item, "cap_list"))
         return 0;
     if (!weechat_infolist_new_var_string (ptr_item, "isupport", server->isupport))
         return 0;
@@ -5854,7 +5867,6 @@ irc_server_print_log ()
         weechat_log_printf ("  nick_modes . . . . . : '%s'",  ptr_server->nick_modes);
         weechat_log_printf ("  cap_away_notify. . . : %d",    ptr_server->cap_away_notify);
         weechat_log_printf ("  cap_account_notify . : %d",    ptr_server->cap_account_notify);
-        weechat_log_printf ("  cap_multi_prefix . . : %d",    ptr_server->cap_multi_prefix);
         weechat_log_printf ("  isupport . . . . . . : '%s'",  ptr_server->isupport);
         weechat_log_printf ("  prefix_modes . . . . : '%s'",  ptr_server->prefix_modes);
         weechat_log_printf ("  prefix_chars . . . . : '%s'",  ptr_server->prefix_chars);
