@@ -979,6 +979,11 @@ string_regex_flags (const char *regex, int default_flags, int *flags)
     if (flags)
         *flags = default_flags;
 
+#ifdef HAVE_PCRE
+    if (flags)
+        *flags |= REG_UTF8;
+#endif
+
     if (!regex)
         return NULL;
 
