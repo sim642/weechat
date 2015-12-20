@@ -388,6 +388,26 @@ plugin_api_info_dir_separator_cb (void *data, const char *info_name,
 }
 
 /*
+ * Returns WeeChat info "regex_engine".
+ */
+
+const char *
+plugin_api_info_regex_engine_cb (void *data, const char *info_name,
+                                 const char *arguments)
+{
+    /* make C compiler happy */
+    (void) data;
+    (void) info_name;
+    (void) arguments;
+
+#ifdef HAVE_PCRE
+    return "pcre";
+#else
+    return "posix";
+#endif
+}
+
+/*
  * Returns WeeChat info "weechat_dir".
  */
 
@@ -1717,6 +1737,9 @@ plugin_api_init ()
     hook_info (NULL, "dir_separator",
                N_("directory separator"),
                NULL, &plugin_api_info_dir_separator_cb, NULL);
+    hook_info (NULL, "regex_engine",
+               N_("WeeChat regular expression engine (posix/pcre)"),
+               NULL, &plugin_api_info_regex_engine_cb, NULL);
     hook_info (NULL, "weechat_dir",
                N_("WeeChat directory"),
                NULL, &plugin_api_info_weechat_dir_cb, NULL);
