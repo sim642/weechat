@@ -58,6 +58,7 @@ enum t_eval_comparison
 
 struct t_eval_regex
 {
+    regex_t *regex;
     const char *result;
     regmatch_t match[100];
     int last_match;
