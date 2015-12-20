@@ -972,9 +972,11 @@ string_mask_to_regex (const char *mask)
 const char *
 string_regex_flags (const char *regex, int default_flags, int *flags)
 {
+#ifndef HAVE_PCRE
     const char *ptr_regex, *ptr_flags;
     int set_flag, flag;
     char *pos;
+#endif /* HAVE_PCRE */
 
     if (flags)
         *flags = default_flags;
@@ -982,6 +984,18 @@ string_regex_flags (const char *regex, int default_flags, int *flags)
     if (!regex)
         return NULL;
 
+#ifdef HAVE_PCRE
+    if (flags)
+    {
+        /* enable UTF-8 support */
+        *flags |= REG_UTF8;
+        /* enable submatches, pcreposix disables backrefs otherwise */
+        *flags &= ~REG_NOSUB;
+    }
+
+    return regex;
+
+#else /* HAVE_PCRE */
     ptr_regex = regex;
     while (strncmp (ptr_regex, "(?", 2) == 0)
     {
@@ -1026,17 +1040,8 @@ string_regex_flags (const char *regex, int default_flags, int *flags)
         ptr_regex = pos + 1;
     }
 
-#ifdef HAVE_PCRE
-    if (flags)
-    {
-        /* enable UTF-8 support */
-        *flags |= REG_UTF8;
-        /* enable submatches, pcreposix disables backrefs otherwise */
-        *flags &= ~REG_NOSUB;
-    }
-#endif
-
     return ptr_regex;
+#endif /* HAVE_PCRE */
 }
 
 /*
