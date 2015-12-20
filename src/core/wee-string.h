@@ -20,7 +20,11 @@
 #ifndef WEECHAT_STRING_H
 #define WEECHAT_STRING_H 1
 
+#ifdef HAVE_PCRE
+#include <pcreposix.h>
+#else
 #include <regex.h>
+#endif
 
 struct t_hashtable;
 

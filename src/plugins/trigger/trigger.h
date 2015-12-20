@@ -20,7 +20,11 @@
 #ifndef WEECHAT_TRIGGER_H
 #define WEECHAT_TRIGGER_H 1
 
+#ifdef HAVE_PCRE
+#include <pcreposix.h>
+#else
 #include <regex.h>
+#endif
 
 #define weechat_plugin weechat_trigger_plugin
 #define TRIGGER_PLUGIN_NAME "trigger"

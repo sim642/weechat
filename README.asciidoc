@@ -47,6 +47,7 @@ Following packages are *required*:
 Following packages are optional:
 
 * for i18n: gettext
+* for PCRE: pcre
 * for SSL: gnutls, ca-certificates
 * for spell checking: aspell
 * for scripting: python, perl, ruby, lua, tcl, guile, libv8 (javascript)
