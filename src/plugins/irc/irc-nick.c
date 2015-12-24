@@ -147,6 +147,8 @@ int
 irc_nick_hash_color (const char *nickname)
 {
     unsigned long color;
+    int length;
+    char *str;
     const char *ptr_nick;
 
     if (!irc_config_nick_colors)
@@ -155,7 +157,21 @@ irc_nick_hash_color (const char *nickname)
     if (irc_config_num_nick_colors == 0)
         return 0;
 
-    ptr_nick = nickname;
+    length = strlen (weechat_config_string (irc_config_look_nick_color_hash_seed)) +
+             strlen (nickname) + 1;
+    str = malloc (length);
+    if (str)
+    {
+        snprintf (str, length, "%s%s",
+                  weechat_config_string (irc_config_look_nick_color_hash_seed),
+                  nickname);
+        ptr_nick = str;
+    }
+    else
+    {
+        ptr_nick = nickname;
+    }
+
     color = 0;
 
     switch (weechat_config_integer (irc_config_look_nick_color_hash))
@@ -179,6 +195,9 @@ irc_nick_hash_color (const char *nickname)
             }
             break;
     }
+
+    if (str)
+        free (str);
 
     return (color % irc_config_num_nick_colors);
 }

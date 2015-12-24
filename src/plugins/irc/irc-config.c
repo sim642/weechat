@@ -86,6 +86,7 @@ struct t_config_option *irc_config_look_new_channel_position;
 struct t_config_option *irc_config_look_new_pv_position;
 struct t_config_option *irc_config_look_nick_color_force;
 struct t_config_option *irc_config_look_nick_color_hash;
+struct t_config_option *irc_config_look_nick_color_hash_seed;
 struct t_config_option *irc_config_look_nick_color_stop_chars;
 struct t_config_option *irc_config_look_nick_completion_smart;
 struct t_config_option *irc_config_look_nick_mode;
@@ -2647,6 +2648,13 @@ irc_config_init ()
            "of djb2 (position of letters matters: anagrams of a nick have "
            "different color), sum = sum of letters"),
         "djb2|sum", 0, 0, "sum", NULL, 0, NULL, NULL,
+        &irc_config_change_look_nick_colors, NULL, NULL, NULL);
+    irc_config_look_nick_color_hash_seed = weechat_config_new_option (
+        irc_config_file, ptr_section,
+        "nick_color_hash_seed", "string",
+        N_("seed to be used with the hash algorithm used for nick colors; "
+           "modifying this shuffles nick colors"),
+        NULL, 0, 0, "", NULL, 0, NULL, NULL,
         &irc_config_change_look_nick_colors, NULL, NULL, NULL);
     irc_config_look_nick_color_stop_chars = weechat_config_new_option (
         irc_config_file, ptr_section,

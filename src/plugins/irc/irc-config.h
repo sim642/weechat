@@ -131,6 +131,7 @@ extern struct t_config_option *irc_config_look_new_channel_position;
 extern struct t_config_option *irc_config_look_new_pv_position;
 extern struct t_config_option *irc_config_look_nick_color_force;
 extern struct t_config_option *irc_config_look_nick_color_hash;
+extern struct t_config_option *irc_config_look_nick_color_hash_seed;
 extern struct t_config_option *irc_config_look_nick_color_stop_chars;
 extern struct t_config_option *irc_config_look_nick_completion_smart;
 extern struct t_config_option *irc_config_look_nick_mode;
