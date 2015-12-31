@@ -682,7 +682,8 @@ irc_command_me_channel (struct t_irc_server *server,
         "PRIVMSG %s :\01ACTION %s\01",
         channel->name,
         (arguments && arguments[0]) ? arguments : "");
-    if (hashtable)
+    if (hashtable &&
+        !weechat_hashtable_has_key (server->cap_list, "echo-message"))
     {
         number = 1;
         while (1)
@@ -1409,6 +1410,7 @@ irc_command_ctcp (void *data, struct t_gui_buffer *buffer, int argc,
         irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
                           "PRIVMSG %s :\01PING %s\01",
                           argv[1], str_time);
+        /* TODO: respect echo-message */
         weechat_printf (
             irc_msgbuffer_get_target_buffer (
                 ptr_server, argv[1], NULL, "ctcp", NULL),
@@ -1431,6 +1433,7 @@ irc_command_ctcp (void *data, struct t_gui_buffer *buffer, int argc,
                           irc_cmd,
                           (argv_eol[3]) ? " " : "",
                           (argv_eol[3]) ? argv_eol[3] : "");
+        /* TODO: respect echo-message */
         weechat_printf (
             irc_msgbuffer_get_target_buffer (
                 ptr_server, argv[1], NULL, "ctcp", NULL),
@@ -3128,12 +3131,15 @@ irc_command_msg (void *data, struct t_gui_buffer *buffer, int argc,
                     weechat_prefix ("error"), IRC_PLUGIN_NAME, "msg *");
                 return WEECHAT_RC_OK;
             }
-            string = irc_color_decode (argv_eol[arg_text],
-                                       weechat_config_boolean (irc_config_network_colors_send));
-            irc_input_user_message_display (ptr_channel->buffer, 0,
-                                            (string) ? string : argv_eol[arg_text]);
-            if (string)
-                free (string);
+            if (!weechat_hashtable_has_key (ptr_server->cap_list, "echo-message"))
+            {
+                string = irc_color_decode (argv_eol[arg_text],
+                                           weechat_config_boolean (irc_config_network_colors_send));
+                irc_input_user_message_display (ptr_channel->buffer, 0,
+                                                (string) ? string : argv_eol[arg_text]);
+                if (string)
+                    free (string);
+            }
 
             irc_server_sendf (ptr_server,
                               IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
@@ -3161,7 +3167,8 @@ irc_command_msg (void *data, struct t_gui_buffer *buffer, int argc,
             }
             if (is_channel)
             {
-                if (ptr_channel)
+                if (ptr_channel &&
+                    !weechat_hashtable_has_key (ptr_server->cap_list, "echo-message"))
                 {
                     string = irc_color_decode (
                         argv_eol[arg_text],
@@ -3216,67 +3223,71 @@ irc_command_msg (void *data, struct t_gui_buffer *buffer, int argc,
                         }
                     }
                 }
-                if (hide_password)
+
+                if (!weechat_hashtable_has_key (ptr_server->cap_list, "echo-message"))
                 {
-                    /* hide password in message displayed using modifier */
-                    msg_pwd_hidden = weechat_hook_modifier_exec (
-                        "irc_message_auth",
-                        ptr_server->name,
-                        argv_eol[arg_text]);
-                    string = irc_color_decode (
-                        (msg_pwd_hidden) ? msg_pwd_hidden : argv_eol[arg_text],
-                        weechat_config_boolean (irc_config_network_colors_send));
-                    weechat_printf (
-                        ptr_server->buffer,
-                        "%sMSG%s(%s%s%s)%s: %s",
-                        weechat_prefix ("network"),
-                        IRC_COLOR_CHAT_DELIMITERS,
-                        irc_nick_color_for_msg (ptr_server, 0, NULL,
-                                                targets[i]),
-                        targets[i],
-                        IRC_COLOR_CHAT_DELIMITERS,
-                        IRC_COLOR_RESET,
-                        (string) ?
-                        string : ((msg_pwd_hidden) ?
-                                  msg_pwd_hidden : argv_eol[arg_text]));
-                    if (string)
-                        free (string);
-                    if (msg_pwd_hidden)
-                        free (msg_pwd_hidden);
-                }
-                else
-                {
-                    string = irc_color_decode (
-                        argv_eol[arg_text],
-                        weechat_config_boolean (irc_config_network_colors_send));
-                    ptr_channel = irc_channel_search (ptr_server,
-                                                      targets[i]);
-                    if (ptr_channel)
+                    if (hide_password)
                     {
-                        irc_input_user_message_display (
-                            ptr_channel->buffer,
-                            0,
-                            (string) ? string : argv_eol[arg_text]);
-                    }
-                    else
-                    {
-                        weechat_printf_tags (
+                        /* hide password in message displayed using modifier */
+                        msg_pwd_hidden = weechat_hook_modifier_exec (
+                            "irc_message_auth",
+                            ptr_server->name,
+                            argv_eol[arg_text]);
+                        string = irc_color_decode (
+                            (msg_pwd_hidden) ? msg_pwd_hidden : argv_eol[arg_text],
+                            weechat_config_boolean (irc_config_network_colors_send));
+                        weechat_printf (
                             ptr_server->buffer,
-                            irc_protocol_tags (
-                                "privmsg", "notify_none,no_highlight",
-                                ptr_server->nick, NULL),
                             "%sMSG%s(%s%s%s)%s: %s",
                             weechat_prefix ("network"),
                             IRC_COLOR_CHAT_DELIMITERS,
-                            irc_nick_color_for_msg (
-                                ptr_server, 0, NULL, targets[i]),
+                            irc_nick_color_for_msg (ptr_server, 0, NULL,
+                                                    targets[i]),
                             targets[i],
                             IRC_COLOR_CHAT_DELIMITERS,
                             IRC_COLOR_RESET,
-                            (string) ? string : argv_eol[arg_text]);
+                            (string) ?
+                            string : ((msg_pwd_hidden) ?
+                                      msg_pwd_hidden : argv_eol[arg_text]));
+                        if (string)
+                            free (string);
+                        if (msg_pwd_hidden)
+                            free (msg_pwd_hidden);
                     }
-                    if (string)
-                        free (string);
+                    else
+                    {
+                        string = irc_color_decode (
+                            argv_eol[arg_text],
+                            weechat_config_boolean (irc_config_network_colors_send));
+                        ptr_channel = irc_channel_search (ptr_server,
+                                                          targets[i]);
+                        if (ptr_channel)
+                        {
+                            irc_input_user_message_display (
+                                ptr_channel->buffer,
+                                0,
+                                (string) ? string : argv_eol[arg_text]);
+                        }
+                        else
+                        {
+                            weechat_printf_tags (
+                                ptr_server->buffer,
+                                irc_protocol_tags (
+                                    "privmsg", "notify_none,no_highlight",
+                                    ptr_server->nick, NULL),
+                                "%sMSG%s(%s%s%s)%s: %s",
+                                weechat_prefix ("network"),
+                                IRC_COLOR_CHAT_DELIMITERS,
+                                irc_nick_color_for_msg (
+                                    ptr_server, 0, NULL, targets[i]),
+                                targets[i],
+                                IRC_COLOR_CHAT_DELIMITERS,
+                                IRC_COLOR_RESET,
+                                (string) ? string : argv_eol[arg_text]);
+                        }
+                        if (string)
+                            free (string);
+                    }
                 }
                 irc_server_sendf (ptr_server,
                                   IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
@@ -3430,7 +3441,8 @@ irc_command_notice (void *data, struct t_gui_buffer *buffer, int argc,
         NULL,
         "NOTICE %s :%s",
         argv[arg_target], argv_eol[arg_text]);
-    if (hashtable)
+    if (hashtable &&
+        !weechat_hashtable_has_key (ptr_server->cap_list, "echo-message"))
     {
         number = 1;
         while (1)
@@ -3965,12 +3977,15 @@ irc_command_query (void *data, struct t_gui_buffer *buffer, int argc,
             /* display text if given */
             if (argv_eol[arg_text])
             {
-                string = irc_color_decode (argv_eol[arg_text],
-                                           weechat_config_boolean (irc_config_network_colors_send));
-                irc_input_user_message_display (ptr_channel->buffer, 0,
-                                                (string) ? string : argv_eol[arg_text]);
-                if (string)
-                    free (string);
+                if (!weechat_hashtable_has_key (ptr_server->cap_list, "echo-message"))
+                {
+                    string = irc_color_decode (argv_eol[arg_text],
+                                               weechat_config_boolean (irc_config_network_colors_send));
+                    irc_input_user_message_display (ptr_channel->buffer, 0,
+                                                    (string) ? string : argv_eol[arg_text]);
+                    if (string)
+                        free (string);
+                }
                 irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH,
                                   NULL,
                                   "PRIVMSG %s :%s",

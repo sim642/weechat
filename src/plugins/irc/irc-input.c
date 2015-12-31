@@ -167,7 +167,8 @@ irc_input_send_user_message (struct t_gui_buffer *buffer, int flags,
                                   tags,
                                   "PRIVMSG %s :%s",
                                   ptr_channel->name, message);
-    if (hashtable)
+    if (hashtable &&
+        !weechat_hashtable_has_key (ptr_server->cap_list, "echo-message"))
     {
         action = (strncmp (message, "\01ACTION ", 8) == 0);
         number = 1;
