@@ -1103,7 +1103,7 @@ irc_command_cap (void *data, struct t_gui_buffer *buffer, int argc,
         if ((weechat_strcasecmp (argv[1], "ls") == 0) && !argv_eol[2])
         {
             irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
-                              "CAP LS 302");
+                              "CAP LS " IRC_SERVER_VERSION_CAP);
         }
         else
         {
@@ -1123,7 +1123,7 @@ irc_command_cap (void *data, struct t_gui_buffer *buffer, int argc,
          * enabled
          */
         irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
-                          "CAP LS 302");
+                          "CAP LS " IRC_SERVER_VERSION_CAP);
         irc_server_sendf (ptr_server, IRC_SERVER_SEND_OUTQ_PRIO_HIGH, NULL,
                           "CAP LIST");
     }
