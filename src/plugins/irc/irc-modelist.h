@@ -79,6 +79,10 @@ extern struct t_hdata *irc_modelist_hdata_item_cb (void *data,
                                                             const char *hdata_name);
 extern struct t_hdata *irc_modelist_hdata_modelist_cb (void *data,
                                                        const char *hdata_name);
+extern int irc_modelist_item_add_to_infolist (struct t_infolist *infolist,
+                                              struct t_irc_modelist_item *item);
+extern int irc_modelist_add_to_infolist (struct t_infolist *infolist,
+                                         struct t_irc_modelist *modelist);
 extern void irc_modelist_item_print_log (struct t_irc_modelist_item *item);
 extern void irc_modelist_print_log (struct t_irc_modelist *modelist);
 
