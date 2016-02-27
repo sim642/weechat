@@ -1618,7 +1618,7 @@ COMMAND_CALLBACK(cursor)
 
     if (string_strcasecmp (argv[1], "stop") == 0)
     {
-        gui_cursor_mode_toggle ();
+        gui_cursor_mode_run (0);
         return WEECHAT_RC_OK;
     }
 

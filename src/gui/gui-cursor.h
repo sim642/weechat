@@ -29,6 +29,7 @@ extern int gui_cursor_y;
 
 /* cursor functions */
 
+extern void gui_cursor_mode_run (int enable);
 extern void gui_cursor_mode_toggle ();
 extern void gui_cursor_debug_set (int debug);
 extern void gui_cursor_move_xy (int x, int y);

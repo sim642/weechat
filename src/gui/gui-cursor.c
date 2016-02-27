@@ -46,15 +46,17 @@ int gui_cursor_y = 0;                  /* position of cursor in cursor mode */
 
 
 /*
- * Toggles cursor mode.
+ * Enables/disables cursor mode.
  */
 
 void
-gui_cursor_mode_toggle ()
+gui_cursor_mode_run (int enable)
 {
-    gui_cursor_mode ^= 1;
+    if (gui_cursor_mode == enable)
+        return;
 
-    if (gui_cursor_mode)
+    gui_cursor_mode = enable;
+    if (enable)
     {
         if (gui_cursor_debug)
             gui_input_delete_line (gui_current_window->buffer);
@@ -72,6 +74,16 @@ gui_cursor_mode_toggle ()
                                                     1); /* stop completion */
         gui_buffer_ask_chat_refresh (gui_current_window->buffer, 2);
     }
+}
+
+/*
+ * Toggles cursor mode.
+ */
+
+void
+gui_cursor_mode_toggle ()
+{
+    gui_cursor_mode_run (!gui_cursor_mode);
 }
 
 /*
@@ -137,8 +149,7 @@ gui_cursor_display_debug_info ()
 void
 gui_cursor_move_xy (int x, int y)
 {
-    if (!gui_cursor_mode)
-        gui_cursor_mode_toggle ();
+    gui_cursor_mode_run (1);
 
     gui_cursor_x = x;
     gui_cursor_y = y;
@@ -164,8 +175,7 @@ gui_cursor_move_xy (int x, int y)
 void
 gui_cursor_move_add_xy (int add_x, int add_y)
 {
-    if (!gui_cursor_mode)
-        gui_cursor_mode_toggle ();
+    gui_cursor_mode_run (1);
 
     gui_cursor_x += add_x;
     gui_cursor_y += add_y;
@@ -194,8 +204,7 @@ gui_cursor_move_area_add_xy (int add_x, int add_y)
     int x, y, width, height, area_found;
     struct t_gui_focus_info *focus_info_old, *focus_info_new;
 
-    if (!gui_cursor_mode)
-        gui_cursor_mode_toggle ();
+    gui_cursor_mode_run (1);
 
     area_found = 0;
 
@@ -316,8 +325,8 @@ gui_cursor_move_area (const char *area)
 
     if (area_found)
     {
-        if (!gui_cursor_mode)
-            gui_cursor_mode_toggle ();
+        gui_cursor_mode_run (1);
+
         gui_cursor_x = x;
         gui_cursor_y = y;
         gui_cursor_display_debug_info ();
