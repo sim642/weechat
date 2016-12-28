@@ -1065,23 +1065,6 @@ config_change_prefix_align_min (const void *pointer, void *data,
 }
 
 /*
- * Checks option "weechat.look.prefix_align_more".
- */
-
-int
-config_check_prefix_align_more (const void *pointer, void *data,
-                                struct t_config_option *option,
-                                const char *value)
-{
-    /* make C compiler happy */
-    (void) pointer;
-    (void) data;
-    (void) option;
-
-    return (utf8_strlen_screen (value) == 1) ? 1 : 0;
-}
-
-/*
  * Checks option "weechat.look.prefix_buffer_align_more".
  */
 
@@ -3211,7 +3194,7 @@ config_weechat_init_options ()
         N_("char to display if prefix is truncated (must be exactly one char "
            "on screen)"),
         NULL, 0, 0, "+", NULL, 0,
-        &config_check_prefix_align_more, NULL, NULL,
+        NULL, NULL, NULL,
         &config_change_buffers, NULL, NULL,
         NULL, NULL, NULL);
     config_look_prefix_align_more_after = config_file_new_option (
