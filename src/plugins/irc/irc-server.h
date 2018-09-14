@@ -85,6 +85,7 @@ enum t_irc_server_option
     IRC_SERVER_OPTION_MSG_QUIT,             /* default quit message          */
     IRC_SERVER_OPTION_NOTIFY,               /* notify list                   */
     IRC_SERVER_OPTION_SPLIT_MSG_MAX_LENGTH, /* max length of messages        */
+    IRC_SERVER_OPTION_SSL_CA_FILE,          /* gnutls ssl ca file            */
     /* number of server options */
     IRC_SERVER_NUM_OPTIONS,
 };
