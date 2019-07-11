@@ -1,11 +1,6 @@
 import re
 
 
-def stub_register(stub_file):
-    # register isn't in plugin API docs, only in scripting guide
-    stub_file.write("def register(name, author, version, license, description, shutdown_function, charset): ...\n")
-
-
 def stub_api_python_prototypes(stub_file):
     prototype_pattern = re.compile(r"""\[source,python\]
 ----
@@ -23,6 +18,14 @@ def stub_api_python_prototypes(stub_file):
             m_args = args_pattern.split(m["args"])
 
             stub_file.write(f"def {m_function}({', '.join(m_args)}): ...\n")
+
+
+def stub_extra(stub_file):
+    # register isn't in plugin API docs, only in scripting guide
+    stub_file.write("def register(name, author, version, license, description, shutdown_function, charset): ...\n")
+
+    # window_get_string has no prototype/example in plugin API docs, reserved for future
+    stub_file.write("def window_get_string(window, property): ...\n")
 
 
 def stub_scripting_constants(stub_file):
@@ -43,5 +46,5 @@ with open("weechat.pyi", "w") as stub_file:
     stub_file.write("\n")
 
     # functions
-    stub_register(stub_file)
     stub_api_python_prototypes(stub_file)
+    stub_extra(stub_file)
