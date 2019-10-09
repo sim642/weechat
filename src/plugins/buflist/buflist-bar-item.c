@@ -277,7 +277,7 @@ buflist_bar_item_buflist_cb (const void *pointer, void *data,
     char str_format_number[32], str_format_number_empty[32];
     char str_nick_prefix[32], str_color_nick_prefix[32];
     char str_number[32], str_number2[32], *line, **hotlist, *str_hotlist;
-    char str_hotlist_count[32];
+    char str_hotlist_count[32], *item_name;
     const char *ptr_format, *ptr_format_current, *ptr_format_indent;
     const char *ptr_name, *ptr_type, *ptr_nick, *ptr_nick_prefix;
     const char *ptr_hotlist_format, *ptr_hotlist_priority;
@@ -285,7 +285,7 @@ buflist_bar_item_buflist_cb (const void *pointer, void *data,
     const char *hotlist_priority[4] = { "low", "message", "private",
                                         "highlight" };
     const char indent_empty[1] = { '\0' };
-    const char *ptr_lag, *ptr_item_name;
+    const char *ptr_lag;
     int item_index, num_buffers, is_channel, is_private;
     int i, j, length_max_number, current_buffer, number, prev_number, priority;
     int rc, count, line_number, line_number_current_buffer;
@@ -616,15 +616,22 @@ end:
     weechat_string_dyn_free (buflist, 0);
     weechat_arraylist_free (buffers);
 
+    item_name = strdup (weechat_hdata_string (buflist_hdata_bar_item,
+                                              item, "name"));
+
     if ((line_number_current_buffer != old_line_number_current_buffer[item_index])
         && (weechat_config_integer (buflist_config_look_auto_scroll) >= 0))
     {
-        ptr_item_name = weechat_hdata_string (buflist_hdata_bar_item,
-                                              item, "name");
-        buflist_bar_item_auto_scroll (ptr_item_name,
+
+        buflist_bar_item_auto_scroll (item_name,
                                       line_number_current_buffer);
     }
     old_line_number_current_buffer[item_index] = line_number_current_buffer;
+
+    (void) weechat_hook_signal_send (
+        "buflist_refreshed",
+        WEECHAT_HOOK_SIGNAL_STRING,
+        item_name);
 
     return str_buflist;
 }
